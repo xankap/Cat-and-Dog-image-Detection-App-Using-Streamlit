@@ -1,39 +1,12 @@
 import os
 
-# Define the base directory for the structured dataset
-base_processed_dir = '/content/structured_cats_dogs'
-
-# List the contents of the structured dataset directory
-print(f"Listing contents of {base_processed_dir}:")
-
-# Use os.walk to get a more detailed view of the directory structure
-for dirpath, dirnames, filenames in os.walk(base_processed_dir):
-    # Calculate current depth for indentation
-    depth = dirpath.replace(base_processed_dir, '').count(os.sep)
-    indent = '  ' * depth
-
-    # Print current directory
-    print(f"{indent}[{os.path.basename(dirpath)}]")
-
-    # Print subdirectories
-    for dname in dirnames:
-        print(f"{indent}  |- {dname}/")
-    # Print first 5 files if there are any, and total count
-    if filenames:
-        print(f"{indent}  |- ... ({len(filenames)} files)")
-        for fname in sorted(filenames)[:5]: # Print a few sample files
-            print(f"{indent}  |   |- {fname}")
-
-
-print("\nVerification complete.")
-
 import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 
 # Load model
-model = tf.keras.models.load_model("/content/cats_dogs_model.h5")
+model = tf.keras.models.load_model("best.onnx")
 
 # Load model
 model2 = tf.keras.models.load_model("best.onnx")
