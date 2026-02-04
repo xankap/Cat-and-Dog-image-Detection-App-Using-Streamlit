@@ -1,23 +1,50 @@
-import os
-
 import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+from huggingface_hub import hf_hub_download
 
-# Load model
-model = tf.keras.models.load_model("best.onnx")
+st.set_page_config(
+    page_title="Cats vs Dogs Classifier",
+    page_icon="🐱🐶",
+    layout="centered"
+)
 
-# Load model
-model2 = tf.keras.models.load_model("best.onnx")
-
-st.title("🐱🐶 Cats vs Dogs Classifier")
+st.title("🐱🐶 Cats vs Dogs Image Classifier")
 st.write("Upload an image and the model will predict whether it is a cat or a dog.")
 
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+# Load model from Hugging Face
+
+@st.cache_resource
+def load_model():
+    model_path = hf_hub_download(
+        repo_id="xannychuks/cats_dog_model",
+        filename="cats_dogs_model.h5"
+    )
+
+    model = tf.keras.models.load_model(model_path)
+    model.compile(
+        optimizer="adam",
+        loss="binary_crossentropy",
+        metrics=["accuracy"]
+    )
+    return model
+
+model = load_model()
+
+
+# Image upload
+
+uploaded_file = st.file_uploader(
+    "Upload an image",
+    type=["jpg", "jpeg", "png"]
+)
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file).resize((150, 150))
+    image = Image.open(uploaded_file).convert("RGB")
+    image = image.resize((150, 150))
+
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
     img_array = np.array(image) / 255.0
@@ -26,25 +53,6 @@ if uploaded_file is not None:
     prediction = model.predict(img_array)[0][0]
 
     if prediction > 0.5:
-        st.success("🐶 This is a Dog!")
+        st.success("🐶 Prediction: Dog")
     else:
-        st.success("🐱 This is a Cat!")
-
-st.title("Ripe and unripe tomato classifier")
-st.write("Upload an image and the model will predict whether tomato is ripe or not.")
-
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file).resize((150, 150))
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-
-    img_array = np.array(image) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
-
-    prediction = model2.predict(img_array)[0][0]
-
-    if prediction > 0.5:
-        st.success("Tomato is ripe!")
-    else:
-        st.success("Tomatoe is unripe")
+        st.success("🐱 Prediction: Cat")
